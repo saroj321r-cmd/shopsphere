@@ -9,16 +9,21 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({ search: '', category: '', sort: 'newest' });
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
 
   useEffect(() => {
-    // NOTE: this fires a request on every keystroke - see "Debounce search" issue.
+    const timer = setTimeout(() => setDebouncedSearch(filters.search), 400);
+    return () => clearTimeout(timer);
+  }, [filters.search]);
+
+  useEffect(() => {
     setLoading(true);
     api
-      .get('/products', { params: filters })
+      .get('/products', { params: { ...filters, search: debouncedSearch } })
       .then(({ data }) => setProducts(data))
       .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setLoading(false));
-  }, [filters]);
+  }, [debouncedSearch, filters.category, filters.sort]);
 
   const update = (key) => (e) => setFilters((f) => ({ ...f, [key]: e.target.value }));
 
