@@ -11,6 +11,23 @@
   --radius: 10px;
 }
 
+[data-theme="dark"] {
+  --bg: #12121a;
+  --surface: #1c1c28;
+  --text: #f1f1f7;
+  --muted: #9696ab;
+  --primary: #8065e8;
+  --primary-dark: #6744d4;
+  --danger: #e04f64;
+  --success: #28b665;
+  --border: #2e2e40;
+}
+
+[data-theme="dark"] .tag {
+  background: #2a2444;
+  color: #a992f8;
+}
+
 * { box-sizing: border-box; }
 body {
   margin: 0;
@@ -33,6 +50,7 @@ img { max-width: 100%; display: block; }
 .nav-links { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 .nav-links a { color: var(--text); }
 .nav-links a.active { color: var(--primary); font-weight: 600; }
+.theme-toggle { padding: 6px 10px; font-size: 1rem; line-height: 1; }
 
 .btn {
   display: inline-block; padding: 9px 16px; border: none; border-radius: var(--radius);
@@ -51,7 +69,7 @@ img { max-width: 100%; display: block; }
 .filters { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
 input, select, textarea {
   padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius);
-  font: inherit; background: var(--surface);
+  font: inherit; background: var(--surface); color: inherit;
 }
 .filters input { flex: 1; min-width: 200px; }
 textarea { min-height: 80px; }
