@@ -14,10 +14,12 @@ export const createOrder = asyncHandler(async (req, res) => {
   // Check that every product exists and has enough stock
   for (const item of items) {
     const product = await Product.findById(item.product);
+
     if (!product) {
       res.status(404);
       throw new Error(`Product not found: ${item.product}`);
     }
+
     if (product.stock < item.quantity) {
       res.status(400);
       throw new Error(`Not enough stock for ${product.name}`);
@@ -26,9 +28,10 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   // TODO: total is currently calculated from prices sent by the client.
   // This should use prices from the database instead (see issue tracker).
-  const totalAmount = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-
-  // TODO: stock is not reduced after an order is placed.
+  const totalAmount = items.reduce(
+    (sum, i) => sum + i.price * i.quantity,
+    0
+  );
 
   const order = await Order.create({
     user: req.user._id,
@@ -37,6 +40,13 @@ export const createOrder = asyncHandler(async (req, res) => {
     paymentMethod,
     totalAmount,
   });
+
+  // Reduce stock after an order is successfully placed
+  for (const item of items) {
+    await Product.findByIdAndUpdate(item.product, {
+      $inc: { stock: -item.quantity },
+    });
+  }
 
   res.status(201).json(order);
 });
@@ -50,33 +60,42 @@ export const getMyOrders = asyncHandler(async (req, res) => {
 // GET /api/orders/:id
 export const getOrder = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id).populate('user', 'name email');
+
   if (!order) {
     res.status(404);
     throw new Error('Order not found');
   }
 
   const isOwner = order.user._id.equals(req.user._id);
+
   if (!isOwner && req.user.role !== 'admin') {
     res.status(403);
     throw new Error('Not allowed to view this order');
   }
+
   res.json(order);
 });
 
 // GET /api/orders (admin)
 export const getAllOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find().populate('user', 'name email').sort({ createdAt: -1 });
+  const orders = await Order.find()
+    .populate('user', 'name email')
+    .sort({ createdAt: -1 });
+
   res.json(orders);
 });
 
 // PATCH /api/orders/:id/status (admin)
 export const updateOrderStatus = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
+
   if (!order) {
     res.status(404);
     throw new Error('Order not found');
   }
+
   order.status = req.body.status;
   await order.save();
+
   res.json(order);
 });
